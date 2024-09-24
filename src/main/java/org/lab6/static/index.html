@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка попадания точки в область</title>
+    <link rel="stylesheet" href="main.css">
+    <script>
+        let selectedX = null;
+
+        function selectX(xValue) {
+            selectedX = xValue;
+            document.getElementById('selectedX').value = xValue;
+            const xButtons = document.querySelectorAll('.x-buttons button');
+            xButtons.forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            document.getElementById('x-btn-' + xValue).classList.add('selected');
+        }
+
+        function validateForm() {
+            const y = document.forms["pointForm"]["y"].value;
+            const r = document.forms["pointForm"]["r"].value;
+            let valid = true;
+            let errorMessage = "";
+
+            if (!selectedX) {
+                errorMessage += "Выберите значение X.\n";
+                valid = false;
+            }
+
+            if (isNaN(y) || y === "" || y < -5 || y > 3) {
+                errorMessage += "Координата Y должна быть числом в диапазоне [-5, 3].\n";
+                valid = false;
+            }
+
+            if (isNaN(r) || r <= 0) {
+                errorMessage += "Радиус R должен быть положительным числом.\n";
+                valid = false;
+            }
+
+            if (!valid) {
+                alert(errorMessage);
+            }
+
+            return valid;
+        }
+
+        function drawGraph() {
+            const r = document.querySelector('input[name="r"]:checked') ?
+                parseFloat(document.querySelector('input[name="r"]:checked').value) : NaN;
+
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            const scale = isNaN(r) ? width / 4 : (width / 4) / r; // Scale for 1 unit of R
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.strokeStyle = '#000000';
+            ctx.fillStyle = '#4682b4';
+            ctx.lineWidth = 2;
+
+            ctx.fillRect(centerX - scale * r / 2, centerY - scale * r, scale * r / 2, scale * r);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, scale * r / 2, Math.PI /2 ,  Math.PI);
+            ctx.lineTo(centerX, centerY);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(centerX + scale * r, centerY);
+            ctx.lineTo(centerX, centerY + scale * r / 2);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.strokeStyle = '#000000';
+            ctx.beginPath();
+
+            ctx.moveTo(centerX, height);
+            ctx.lineTo(centerX, 0);
+            ctx.lineTo(centerX - 5, 10);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX + 5, 10);
+
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.lineTo(width - 10, centerY - 5);
+            ctx.moveTo(width, centerY);
+            ctx.lineTo(width - 10, centerY + 5);
+
+            ctx.stroke();
+
+            if (!isNaN(r)) {
+                const rHalfValue = r / 2;
+                const rNegValue = -r;
+                const rNegHalfValue = -r / 2;
+
+                ctx.fillStyle = '#000000';
+                ctx.font = '16px Arial';
+
+                ctx.fillText(r, centerX + scale * r - 10, centerY + 20);
+                ctx.fillText(rHalfValue, centerX + scale * r / 2 - 10, centerY + 20);
+                ctx.fillText(rNegHalfValue, centerX - scale * r / 2 - 25, centerY + 20);
+                ctx.fillText(rNegValue, centerX - scale * r - 25, centerY + 20);
+
+                ctx.fillText(r, centerX + 5, centerY - scale * r + 5);
+                ctx.fillText(rHalfValue, centerX + 5, centerY - scale * r / 2 + 5);
+                ctx.fillText(rNegHalfValue, centerX + 5, centerY + scale * r / 2 + 15);
+                ctx.fillText(rNegValue, centerX + 5, centerY + scale * r + 15);
+            }
+
+            ctx.fillText('x', width - 15, centerY - 10);
+            ctx.fillText('y', centerX + 10, 15);
+        }
+
+        window.onload = function() {
+            drawGraph();
+
+            const rButtons = document.querySelectorAll('input[name="r"]');
+            rButtons.forEach(rButton => {
+                rButton.addEventListener('change', drawGraph);
+            });
+        }
+
+
+        window.onload = function() {
+            drawGraph();
+
+            const rButtons = document.querySelectorAll('input[name="r"]');
+            rButtons.forEach(rButton => {
+                rButton.addEventListener('change', drawGraph);
+            });
+        }
+    </script>
+</head>
+<body>
+
+<header class="header">
+    <h1>ФИО: Морозов Ярослав Валерьевич</h1>
+    <h2>Группа: P3215</h2>
+    <h2>Вариант: 409178</h2>
+</header>
+
+<section class="graph-section">
+    <canvas id="graphCanvas" width="600" height="600"></canvas>
+</section>
+
+<section class="form-section">
+    <form name="pointForm" action="http://helios.itmo.ru:40917/point" method="POST" onsubmit="return validateForm();">
+        <input type="hidden" id="selectedX" name="x" value="">
+
+        <label>Координата X:</label>
+        <div class="x-buttons">
+            <button type="button" id="x-btn--5" onclick="selectX(-5)">-5</button>
+            <button type="button" id="x-btn--4" onclick="selectX(-4)">-4</button>
+            <button type="button" id="x-btn--3" onclick="selectX(-3)">-3</button>
+            <button type="button" id="x-btn--2" onclick="selectX(-2)">-2</button>
+            <button type="button" id="x-btn--1" onclick="selectX(-1)">-1</button>
+            <button type="button" id="x-btn-0" onclick="selectX(0)">0</button>
+            <button type="button" id="x-btn-1" onclick="selectX(1)">1</button>
+            <button type="button" id="x-btn-2" onclick="selectX(2)">2</button>
+            <button type="button" id="x-btn-3" onclick="selectX(3)">3</button>
+        </div>
+
+        <label for="y">Координата Y (от -5 до 3):</label>
+        <input type="text" id="y" name="y" placeholder="Введите Y">
+
+        <label>Радиус R:</label>
+        <div class="r-buttons">
+            <label><input type="radio" name="r" value="1"> 1</label>
+            <label><input type="radio" name="r" value="2"> 2</label>
+            <label><input type="radio" name="r" value="3"> 3</label>
+            <label><input type="radio" name="r" value="4"> 4</label>
+            <label><input type="radio" name="r" value="5"> 5</label>
+        </div>
+
+        <input type="submit" value="Проверить">
+    </form>
+</section>
+
+<section class="table-section">
+    <table>
+        <thead>
+        <tr>
+            <th>X</th>
+            <th>Y</th>
+            <th>R</th>
+            <th>Результат</th>
+            <th>Время запроса</th>
+            <th>Время выполнения</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</section>
+
+</body>
+</html>
