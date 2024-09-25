@@ -46,6 +46,73 @@
             return valid;
         }
 
+        function submitForm(event) {
+            event.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            const x = selectedX;
+            const y = document.getElementById('y').value;
+            const r = document.querySelector('input[name="r"]:checked').value;
+
+            const requestData = {
+                x: parseFloat(x),
+                y: parseFloat(y),
+                r: parseFloat(r)
+            };
+
+            fetch('/fcgi-bin/hello-world.jar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    updateTable(data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function updateTable(data) {
+            console.log("Server response:", data);
+
+            const tbody = document.querySelector('table tbody');
+
+            const newRow = document.createElement('tr');
+
+            const xValue = selectedX !== undefined ? selectedX : "N/A";
+            const yValue = document.getElementById('y').value !== "" ? document.getElementById('y').value : "N/A";
+            const rValue = document.querySelector('input[name="r"]:checked') ? document.querySelector('input[name="r"]:checked').value : "N/A";
+
+            const resultValue = data.isInArea ? "Inside" : "Outside";
+            const requestTime = data.currentTime !== undefined ? data.currentTime : "N/A";
+            const executionTime = data.execTime !== undefined ? `${data.execTime}ms` : "N/A";
+
+            console.log("X:", xValue, "Y:", yValue, "R:", rValue, "Result:", resultValue, "Request Time:", requestTime, "Execution Time:", executionTime);
+
+            newRow.innerHTML = `
+        <td>${xValue}</td>
+        <td>${yValue}</td>
+        <td>${rValue}</td>
+        <td>${resultValue}</td>
+        <td>${requestTime}</td>
+        <td>${executionTime}</td>
+    `;
+
+            tbody.appendChild(newRow);
+
+            alert(`Результат: ${resultValue}`);
+        }
+
+
+
+
         function drawGraph() {
             const r = document.querySelector('input[name="r"]:checked') ?
                 parseFloat(document.querySelector('input[name="r"]:checked').value) : NaN;
@@ -127,17 +194,10 @@
             rButtons.forEach(rButton => {
                 rButton.addEventListener('change', drawGraph);
             });
+
+            document.getElementById('pointForm').addEventListener('submit', submitForm);
         }
 
-
-        window.onload = function() {
-            drawGraph();
-
-            const rButtons = document.querySelectorAll('input[name="r"]');
-            rButtons.forEach(rButton => {
-                rButton.addEventListener('change', drawGraph);
-            });
-        }
     </script>
 </head>
 <body>
@@ -153,7 +213,7 @@
 </section>
 
 <section class="form-section">
-    <form name="pointForm" action="http://helios.itmo.ru:40917/point" method="POST" onsubmit="return validateForm();">
+    <form id="pointForm">
         <input type="hidden" id="selectedX" name="x" value="">
 
         <label>Координата X:</label>
